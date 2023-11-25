@@ -1,4 +1,5 @@
 // {"numberServo":0, "angle":70, "speed":5, "current":1, "pkp": 16, "pki": 0.0, "pkd": 0.0, "vkp": 0.007, "ikp": 30, "iki": 100} 
+// {"numberServo":0, "angle":70, "speed":5, "current":1, "pkp": 16, "pki": 0.0, "pkd": 0.0, "vkp": 0.007, "ikp": 30, "iki": 100} 
 #include "ArduinoJson.h"
 
 #define MIN_POS         12     // границы движения сервопривода в градусах
@@ -97,6 +98,7 @@ void loop(){
     }
   }
   else {while (Serial.available() > 0) Serial.read();}
+  errorTimer = millis();
   if (millis() - commTimer >= 10){
     if (command == 1)
     {
@@ -121,26 +123,28 @@ void loop(){
     speed = constrain(speed, -MIN_MAX_SPEED, MIN_MAX_SPEED);  // ограничиваем скорость до допустимого диапазона
 
     temp_ki = vkI;
-    if(abs(current) == MIN_MAX_CURRENT) temp_ki = 0.f; // если ток ушел в насыщение, то отключаем интегральную составляющую
-    current = vpid(realSpeed, speed, vkP, temp_ki, vkD, dt);  // получаем ток с PID-регулятора
-    current = constrain(current, -MIN_MAX_CURRENT, MIN_MAX_CURRENT);  // ограничиваем ток до допустимого диапазона
+    if(abs(motorPwm) == 255) temp_ki = 0.f; // если ток ушел в насыщение, то отключаем интегральную составляющую
+    motorPwm = vpid(realSpeed, speed, vkP, temp_ki, vkD, dt);  // получаем ток с PID-регулятора
+    motorPwm = constrain(motorPwm, -255, 255);
+    //current = constrain(current, -MIN_MAX_CURRENT, MIN_MAX_CURRENT);  // ограничиваем ток до допустимого диапазона
 
-    temp_ki = ikI;
+    /*temp_ki = ikI;
     if(abs(motorPwm) == 255) temp_ki = 0.f; // если заполнение ШИМ ушло в насыщение, то отключаем интегральную составляющую
     motorPwm = (int16_t)ipid(realCurrent, current, ikP, temp_ki, ikD, dt);  // получаем заполнение ШИМ с PID-регулятора
     motorPwm = constrain(motorPwm, -255, 255);  // ограничиваем заполнение до допустимого диапазона
-    
+    */
     setMotorPwm(motorPwm);  // подаем ШИМ на мотор
     pidTimer = millis();
-    if (realSpeed != speed)
+    if (((position*0.9<=realPosition)&&(position*1.1>=realPosition))&& (millis() - commTimer>=1000))
     {
-      error = 2;
+      Serial.print(realPosition, DEC); // выводим реальную позицию 
+      Serial.print(',');  
+      Serial.println(position, DEC);   // и заданное положение
+      commTimer = millis();
     }
-    Serial.print(realPosition, DEC); // выводим реальную позицию 
-    Serial.print(',');  
-    Serial.println(position, DEC);   // и заданное положение
   }
-  if (realPosition != position) {
+  if (((realPosition < position *0.95) || (position*1.05>realPosition))&&((millis() - errorTimer)>=5000))
+  {
     error = 1;
   }
 }
@@ -175,11 +179,11 @@ float vpid(float input, float trgt, float kp, float ki, float kd, float dt){
 }
 
 
-float ipid(float input, float trgt, float kp, float ki, float kd, float dt){
+/*float ipid(float input, float trgt, float kp, float ki, float kd, float dt){
   static float iintegral = 0.f;  // храним значение суммы интегральной компоненты 
   static float ilastError = 0.f; // и предыдущую ошибку регулирования для дифференциирования
   return pid(input, trgt, kp, ki, kd, dt, &iintegral, &ilastError);  
-}
+}*/
 
 float lpFilter(float value, float oldValue, float alp){
   return oldValue*(1.f-alp)+ alp*value;
