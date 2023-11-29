@@ -43,7 +43,8 @@ float speed = 0;        // задаваемая PIDом положения ск�
 float current = 0;      // задаваемый PIDом скорости ток сервопривода (амперы)
 int16_t motorPwm = 0;   // заполнение ШИМ, подаваемое на мотор
 int16_t command = 0;
-int16_t error = 0;
+int16_t errorAngle = 1;
+int16_t errorSpeed = 1;
 
 /*volatile long pause    = 50;  // Пауза для борьбы с дребезгом
 volatile long lastTurn = 0;   // Переменная для хранения времени последнего изменения
@@ -135,25 +136,29 @@ void loop(){
     */
     setMotorPwm(motorPwm);  // подаем ШИМ на мотор
     pidTimer = millis();
-    if (((position*0.9<=realPosition)&&(position*1.1>=realPosition))&& (millis() - commTimer>=1000))
+  if ((realSpeed < speed *0.95) || (speed*1.05>realSpeed))
+  {
+    errorSpeed = 3;//ошибка по скорости
+  }
+  else errorSpeed = 1;
+    if (((realPosition < position *0.95) || (position*1.05>realPosition))&&((millis() - errorTimer)>=5000))
+  {
+    errorAngle = 2;//ошибка по углу
+  }
+  else errorAngle = 1;
+    if (((position*0.9<=realPosition)&&(position*1.1>=realPosition))&& (millis() - commTimer>=5000))
     {
       Serial.print(numberServo + 12, DEC);
-      Serial.print(','); 
+      Serial.print(', '); 
       Serial.print(realPosition, DEC); // выводим реальную позицию 
-      Serial.print(',');  
+      Serial.print(', ');  
       Serial.println(position, DEC);   // и заданное положение
-      Serial.print(','); 
-      Serial.print(error);
+      Serial.print(', '); 
+      Serial.print(errorAngle, DEC);
+      Serial.print(', '); 
+      Serial.print(errorSpeed, DEC);
       commTimer = millis();
     }
-  }
-  if (((realPosition < position *0.95) || (position*1.05>realPosition))&&((millis() - errorTimer)>=3000))
-  {
-    error = 2;//ошибка по углу
-  }
-  if (((realSpeed < speed *0.95) || (speed*1.05>realSpeed))&&((millis() - errorTimer)>=3000))
-  {
-    error = 3;//ошибка по скорости
   }
 }
 
