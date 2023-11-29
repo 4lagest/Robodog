@@ -1,5 +1,5 @@
 // {"numberServo":0, "angle":70, "speed":5, "current":1, "pkp": 16, "pki": 0.0, "pkd": 0.0, "vkp": 0.007, "ikp": 30, "iki": 100} 
-// {"numberServo":0, "angle":70, "speed":5, "current":1, "pkp": 16, "pki": 0.0, "pkd": 0.0, "vkp": 0.007, "ikp": 30, "iki": 100} 
+// {"numberServo":0, "angle":70, "speed":5, "current":1, "pkp": 16, "pki": 0.0, "pkd": 0.0, "vkp": 0.007} - без датчика тока
 #include "ArduinoJson.h"
 
 #define MIN_POS         12     // границы движения сервопривода в градусах
@@ -91,8 +91,8 @@ void loop(){
       pkI = (float)jsondoc["pki"];
       pkD = (float)jsondoc["pkd"];
       vkP = (float)jsondoc["vkp"];
-      ikP = (float)jsondoc["ikp"];
-      ikI = (float)jsondoc["iki"];
+      //ikP = (float)jsondoc["ikp"];
+      //ikI = (float)jsondoc["iki"];
       command = (int)jsondoc["command"];
       position = constrain(position, MIN_POS, MAX_POS); 
     }
@@ -125,7 +125,7 @@ void loop(){
     temp_ki = vkI;
     if(abs(motorPwm) == 255) temp_ki = 0.f; // если ток ушел в насыщение, то отключаем интегральную составляющую
     motorPwm = vpid(realSpeed, speed, vkP, temp_ki, vkD, dt);  // получаем ток с PID-регулятора
-    motorPwm = constrain(motorPwm, -255, 255);
+    motorPwm = constrain(motorPwm, -245, 245);
     //current = constrain(current, -MIN_MAX_CURRENT, MIN_MAX_CURRENT);  // ограничиваем ток до допустимого диапазона
 
     /*temp_ki = ikI;
@@ -137,15 +137,23 @@ void loop(){
     pidTimer = millis();
     if (((position*0.9<=realPosition)&&(position*1.1>=realPosition))&& (millis() - commTimer>=1000))
     {
+      Serial.print(numberServo + 12, DEC);
+      Serial.print(','); 
       Serial.print(realPosition, DEC); // выводим реальную позицию 
       Serial.print(',');  
       Serial.println(position, DEC);   // и заданное положение
+      Serial.print(','); 
+      Serial.print(error);
       commTimer = millis();
     }
   }
-  if (((realPosition < position *0.95) || (position*1.05>realPosition))&&((millis() - errorTimer)>=5000))
+  if (((realPosition < position *0.95) || (position*1.05>realPosition))&&((millis() - errorTimer)>=3000))
   {
-    error = 1;
+    error = 2;//ошибка по углу
+  }
+  if (((realSpeed < speed *0.95) || (speed*1.05>realSpeed))&&((millis() - errorTimer)>=3000))
+  {
+    error = 3;//ошибка по скорости
   }
 }
 
