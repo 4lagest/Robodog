@@ -45,6 +45,7 @@ int16_t motorPwm = 0;   // заполнение ШИМ, подаваемое н�
 int16_t command = 0;
 int16_t errorAngle = 1;
 int16_t errorSpeed = 1;
+bool recive = false;
 
 /*volatile long pause    = 50;  // Пауза для борьбы с дребезгом
 volatile long lastTurn = 0;   // Переменная для хранения времени последнего изменения
@@ -96,6 +97,7 @@ void loop(){
       //ikI = (float)jsondoc["iki"];
       command = (int)jsondoc["command"];
       position = constrain(position, MIN_POS, MAX_POS); 
+      recive = true;
     }
   }
   else {while (Serial.available() > 0) Serial.read();}
@@ -136,7 +138,7 @@ void loop(){
     */
     setMotorPwm(motorPwm);  // подаем ШИМ на мотор
     pidTimer = millis();
-  if ((realSpeed < speed *0.95) || (speed*1.05>realSpeed))
+  if ((realSpeed < speed *0.95) || (speed*1.05>realSpeed)&&(millis() - errorTimer)>=1000))
   {
     errorSpeed = 3;//ошибка по скорости
   }
@@ -146,7 +148,7 @@ void loop(){
     errorAngle = 2;//ошибка по углу
   }
   else errorAngle = 1;
-    if (((position*0.9<=realPosition)&&(position*1.1>=realPosition))&& (millis() - commTimer>=5000))
+    if (((position*0.95<=realPosition)&&(position*1.05>=realPosition))&& recive)
     {
       Serial.print(numberServo + 12, DEC);
       Serial.print(', '); 
@@ -158,6 +160,7 @@ void loop(){
       Serial.print(', '); 
       Serial.print(errorSpeed, DEC);
       commTimer = millis();
+      recive = false;
     }
   }
 }
