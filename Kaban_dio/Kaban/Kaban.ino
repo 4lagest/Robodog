@@ -126,8 +126,8 @@ void loop(){
     speed = constrain(speed, -MIN_MAX_SPEED, MIN_MAX_SPEED);  // ограничиваем скорость до допустимого диапазона
 
     temp_ki = vkI;
-    if(abs(motorPwm) == 255) temp_ki = 0.f; // если ток ушел в насыщение, то отключаем интегральную составляющую
-    motorPwm = vpid(realSpeed, speed, vkP, temp_ki, vkD, dt);  // получаем ток с PID-регулятора
+    if(abs(motorPwm) == 245) temp_ki = 0.f; // если ток ушел в насыщение, то отключаем интегральную составляющую
+    motorPwm = (int16_t)vpid(realSpeed, speed, vkP, temp_ki, vkD, dt);  // получаем ток с PID-регулятора
     motorPwm = constrain(motorPwm, -245, 245);
     //current = constrain(current, -MIN_MAX_CURRENT, MIN_MAX_CURRENT);  // ограничиваем ток до допустимого диапазона
 
@@ -217,13 +217,13 @@ void setMotorPwm(int16_t pwm)
   }
 }
 
-float getCurrent(){
+/*(float getCurrent(){
   static float oldCurr = 0;
   float curr = (analogRead(CURRENT_SENS_PIN) * 5.f/1024.f - 2.5)/CURRENT_SCALE;
   curr = lpFilter(curr, oldCurr, ialpha);   // фильтруем показания с потенциометра, если надо
   oldCurr = curr;
   return 0.3;
-}
+}*/
 
 float getAngle(){ // функция получения угла с потенциометра/энкодера
   static float oldAngle = 0;
