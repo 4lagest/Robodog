@@ -88,7 +88,7 @@ void loop(){
       numberServo = (float)jsondoc["numberServo"];
       position = (float)jsondoc["angle"];
       speed = (float)jsondoc["speed"];
-      current = (float)jsondoc["current"];
+      //current = (float)jsondoc["current"];
       pkP = (float)jsondoc["pkp"];
       pkI = (float)jsondoc["pki"];
       pkD = (float)jsondoc["pkd"];
@@ -97,7 +97,7 @@ void loop(){
       //ikI = (float)jsondoc["iki"];
       command = (int)jsondoc["command"];
       position = constrain(position, MIN_POS, MAX_POS); 
-      recive = true;
+      //recive = true;
     }
   }
   else {while (Serial.available() > 0) Serial.read();}
@@ -138,7 +138,7 @@ void loop(){
     */
     setMotorPwm(motorPwm);  // подаем ШИМ на мотор
     pidTimer = millis();
-  if ((realSpeed < speed *0.95) || (speed*1.05>realSpeed)&&(millis() - errorTimer)>=1000))
+  if (((realSpeed < speed *0.95) || (speed*1.05>realSpeed))&&(millis() - errorTimer)>=1000)
   {
     errorSpeed = 3;//ошибка по скорости
   }
@@ -148,20 +148,20 @@ void loop(){
     errorAngle = 2;//ошибка по углу
   }
   else errorAngle = 1;
-    if (((position*0.95<=realPosition)&&(position*1.05>=realPosition))&& recive)
-    {
-      Serial.print(numberServo + 12, DEC);
-      Serial.print(', '); 
-      Serial.print(realPosition, DEC); // выводим реальную позицию 
-      Serial.print(', ');  
-      Serial.println(position, DEC);   // и заданное положение
-      Serial.print(', '); 
-      Serial.print(errorAngle, DEC);
-      Serial.print(', '); 
-      Serial.print(errorSpeed, DEC);
-      commTimer = millis();
-      recive = false;
-    }
+    //if (((position*0.95<=realPosition)&&(position*1.05>=realPosition))&& recive)
+    //{
+      //Serial.print(numberServo + 12, DEC);
+      //Serial.print(', '); 
+    Serial.print(realPosition, DEC); // выводим реальную позицию 
+    Serial.print(', ');  
+    Serial.println(position, DEC);   // и заданное положение
+    Serial.print(', '); 
+      //Serial.print(errorAngle, DEC);
+      //Serial.print(', '); 
+      //Serial.print(errorSpeed, DEC);
+      //commTimer = millis();
+      //recive = false;
+    //}
   }
 }
 
@@ -205,7 +205,7 @@ float lpFilter(float value, float oldValue, float alp){
   return oldValue*(1.f-alp)+ alp*value;
 }
 
-void setMotorPwm(int16_t pwm)//Переделать ШИМ
+void setMotorPwm(int16_t pwm)
 {
   if(pwm >= 0){
     analogWrite(MX1508_IN1_PIN, LOW);  
