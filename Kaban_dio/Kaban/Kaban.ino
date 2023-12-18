@@ -1,4 +1,4 @@
-// {"numberServo":0, "angle":70, "speed":5, "current":1, "pkp": 16, "pki": 0.0, "pkd": 0.0, "vkp": 0.007, "vki": 0.0} - без датчика тока
+//{"numberServo":0, "angle":50, "speed":8, "pkp": 5, "pki": 3.0, "pkd": 3.0, "vkp": 1, "vki": 1} - без датчика тока
 #include "ArduinoJson.h"
 
 #define MIN_POS         12     // границы движения сервопривода в градусах
@@ -102,10 +102,9 @@ void loop(){
     motorPwm = constrain(motorPwm, -245, 245);
     setMotorPwm(motorPwm);  // подаем ШИМ на мотор
     pidTimer = millis();
-    Serial.print(realPosition, DEC); // выводим реальную позицию 
-    Serial.print(', ');  
-    Serial.println(position, DEC);   // и заданное положение
-    Serial.print(', '); 
+    Serial.print(realPosition); // выводим реальную позицию 
+    Serial.print(',');  
+    Serial.println(position);   // и заданное положение
   }
 }
 
